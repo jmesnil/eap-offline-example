@@ -27,7 +27,7 @@
 
     <profiles>
         <profile>
-            <id>eap</id>
+            <id>openshift</id>
             <build>
                 <finalName>${project.artifactId}</finalName>
                 <plugins>

@@ -24,7 +24,7 @@
         added for:
         * io/netty/netty-transport-native-epoll/4.1.76.Final/netty-transport-native-epoll-4.1.76.Final-linux-x86_64.jar
         * org.wildfly.plugins:wildfly-maven-plugin:3.0.0.Final
-        
+
         -->
         <repository>
           <id>central</id>
