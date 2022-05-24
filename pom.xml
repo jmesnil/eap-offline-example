@@ -42,7 +42,7 @@
                                 </feature-pack>
                             </feature-packs>
                             <layers>
-                                <layer>jaxrs-server</layer>
+                                <layer>cloud-server</layer>
                             </layers>
                             <runtime-name>ROOT.war</runtime-name>
                         </configuration>
