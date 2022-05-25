@@ -14,7 +14,7 @@ In order to do so, we will fetch the zipped Maven repository and put it in a scr
 $ cd ~/tmp
 $ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
 $ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
-$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository offline-maven-repo
+$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository offline-maven-repo/
 ----
 
 To add all the application dependencies to this offline repo,
@@ -23,7 +23,7 @@ we build the app and use the `dependency:go-offline` goal
 [source,bash]
 ----
 $ export LOCAL_M2=~/tmp/offline-maven-repo
-mvn -Dmaven.repo.local=$LOCAL_M2 clean package -Popenshift dependency:go-offline
+$ mvn -Dmaven.repo.local=$LOCAL_M2 clean package -Popenshift dependency:go-offline
 ----
 
 Once that's done, all artifacts required to build the application and provision EAP are in the ~/tmp/offline-maven-repo directory.
@@ -55,50 +55,6 @@ $ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.opensh
 $ helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
 $ helm install eap-offline-example -f helm.yaml wildfly/wildfly
 ----
-
-## Update the BuildConfig
-
-The `BuildConfig` needs to be updated to inject the docker image containing the EAP artifacts during the S2I build phase.
-Edit it with `oc edit buildconfig eap-offline-example-build-artifacts`:
-
-Replace:
-
-[source,yaml]
-----
-source:
-    git:
-      uri: https://github.com/jmesnil/eap-offline-example.git
-    type: Git
-----
-
-by
-
-[source,yaml]
-----
-source:
-    git:
-      uri: https://github.com/jmesnil/eap-offline-example.git
-    images:
-      - from:
-          kind: ImageStreamTag
-          name: 'offline-maven-repo:latest'
-        paths:
-          - sourcePath: /maven-repository
-            destinationDir: ./offline-maven-repo
-    type: Git
-----
-
-And add the following env vars to `strategy.sourceStrategy.env`:
-
-[source,yaml]
-----
-        - name: MAVEN_LOCAL_REPO
-          value: ./offline-maven-repo/maven-repository
-        - name: MAVEN_ARGS_APPEND
-          value: '-o'
-----
-
-Retrigger a build if needed.
 
 At the end of the S2I build phase, the application image will contained the application provisioned with EAP8.
 
