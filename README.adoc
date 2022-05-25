@@ -1,4 +1,52 @@
-# Build and deploy a EAP8 application on OpenShift
+# Build and deploy a EAP8 application
+:toc:               left
+
+## Build and run on local machine
+
+If you need to build and provision the application on your own machine with an internet access, there are few steps to do.
+
+### Download EAP maven repository zip
+
+[source,bash]
+----
+$ cd ~/tmp
+$ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
+$ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
+----
+
+
+### Build the application
+
+Update the path to the EAP 8 maven repository in the  `local-eap-settings.xml` file:
+
+[source,bash]
+----
+$ vi local-eap-settings.xml
+----
+
+Build the application by using the EAP 8 Maven repo as a remote  Maven repository.
+
+[source,bash]
+----
+$ mvn -s local-eap-settings.xml clean package
+----
+
+[NOTE]
+====
+This example uses the `wildfly-maven-plugin` that will be replaced by the `eap-maven-plugin` when it becomes available.
+====
+
+### Run the application
+
+
+[source,bash]
+----
+$ ./target/server/bin/standalone.sh
+...
+16:50:59,686 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220523) started in 3807ms - Started 274 of 359 services (138 services are lazy, passive or on-demand) - Server configuration file in use: standalone.xml
+----
+
+## Build and deploy on OpenShift
 
 This example shows how to build a EAP8 application on OpenShift using the zipped Maven repository.
 
@@ -7,26 +55,31 @@ But there are cases where the users wants to build EAP without internet access.
 
 In order to do so, we will fetch the zipped Maven repository and put it in a scratch container image so we can pull the artifacts from there during the S2I build phase.
 
-## Downlaoad EAP maven repository zip, add the application dependencies and put it in a container image
+### Download EAP maven repository zip and put it in a container image
 
 [source,bash]
 ----
 $ cd ~/tmp
 $ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
 $ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
-$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository offline-maven-repo/
+$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository eap-maven-repo/
 ----
 
-To add all the application dependencies to this offline repo,
-we build the app and use the `dependency:go-offline` goal
+[NOTE]
+====
+
+In OpenShift disconnected mode, we want to pull all the application dependencies from a local repository when the application is built.
+To do so, we build the app and use the `dependency:go-offline` goal
 
 [source,bash]
 ----
-$ export LOCAL_M2=~/tmp/offline-maven-repo
-$ mvn -Dmaven.repo.local=$LOCAL_M2 clean package -Popenshift dependency:go-offline
+$ export LOCAL_M2=~/tmp/eap-maven-repo
+$ mvn -Dmaven.repo.local=$LOCAL_M2 clean package dependency:go-offline
 ----
 
-Once that's done, all artifacts required to build the application and provision EAP are in the ~/tmp/offline-maven-repo directory.
+====
+
+Once that's done, all artifacts required to build the application and provision EAP are in the `~/tmp/offline-maven-repo directory`.
 Let's create a Docker image that contains this directory.
 
 [source,bash]
@@ -34,29 +87,35 @@ Let's create a Docker image that contains this directory.
 $ cd ~/tmp
 $ cat Dockerfile
 FROM scratch
-COPY offline-maven-repo /maven-repository
-$ docker build -t offline-maven-repo .
+COPY eap-maven-repo /maven-repository
+$ docker build -t eap-maven-repo .
 ----
 
-## Push this image to OpenShift
+### Push this image to OpenShift
 
 [source,bash]
 ----
 $ oc registry login
 $ docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com
-$ docker tag  offline-maven-repo default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/offline-maven-repo
-$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/offline-maven-repo
+$ docker tag  eap-maven-repo default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo
+$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo
 ----
 
-## Create a Helm release to build and deploy the application
+### Create a Helm release to build and deploy the application
 
 [source,bash]
 ----
 $ helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
-$ helm install eap-offline-example -f helm.yaml wildfly/wildfly
+$ helm install eap-example -f helm.yaml wildfly/wildfly
 ----
 
-At the end of the S2I build phase, the application image will contained the application provisioned with EAP8.
+[NOTE]
+====
+This example uses the `wildfly` Helm Chart and the WildFly S2I images.
+They will be replaced by the `eap8` Helm Chart and teh EAP 8 S2I when they become available.
+====
+
+At the end of the S2I build phase, the application image will contain the application provisioned with EAP8.
 
 [source,bash]
 ----
@@ -65,3 +124,6 @@ $ oc logs deployment/eap-offline-example
 14:22:54,324 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220523) started in 13706ms - St
 ...
 ----
+
+
+
