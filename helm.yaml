@@ -1,0 +1,5 @@
+build:
+  uri: https://github.com/jmesnil/eap-offline-example.git
+deploy:
+  replicas: 1
+

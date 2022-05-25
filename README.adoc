@@ -1,0 +1,113 @@
+# Build and deploy a EAP8 application on OpenShift
+
+This example shows how to build a EAP8 application on OpenShift using the zipped Maven repository.
+
+Normally, there is no need to use this zipped Maven repository when EAP artifacts are all available for Red Hat MRRC.
+But there are cases where the users wants to build EAP without internet access.
+
+In order to do so, we will fetch the zipped Maven repository and put it in a scratch container image so we can pull the artifacts from there during the S2I build phase.
+
+## Downlaoad EAP maven repository zip and put it in a container image
+
+[source,bash]
+----
+$ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
+$ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
+$ cat Dockerfile
+FROM scratch
+COPY jboss-eap-8.0.0.Beta-maven-repository/maven-repository/ /maven-repository
+
+$ docker build -t eap-maven-repo:8.0.0.Beta .
+----
+
+## Push this image to OpenShift
+
+[source,bash]
+----
+$ oc registry login
+$ docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com
+$ docker tag  eap-maven-repo:8.0.0.Beta default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo:8.0.0.Beta
+$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo:8.0.0.Beta
+----
+
+## Create a Helm release to build and deploy the application
+
+[source,bash]
+----
+$ helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+$ helm install eap-offline-example -f helm.yaml wildfly/wildfly
+----
+
+## Update the BuildConfig
+
+The `BuildConfig` needs to be updated to inject the docker image containing the EAP artifacts during the S2I build phase.
+Edit it with `oc edit buildconfig eap-offline-example-build-artifacts`:
+
+Replace:
+
+[source,yaml]
+----
+source:
+    git:
+      uri: https://github.com/jmesnil/eap-offline-example.git
+    type: Git
+----
+
+by
+
+[source,yaml]
+----
+source:
+    git:
+      uri: https://github.com/jmesnil/eap-offline-example.git
+    images:
+    - from:
+        kind: ImageStreamTag
+        name: eap-maven-repo:8.0.0.Beta
+      paths:
+      - destinationDir: ./eap-maven-repo
+        sourcePath: /maven-repository
+    type: Git
+----
+
+And replace:
+
+[source,yaml]
+----
+  strategy:
+    sourceStrategy:
+      env:
+      - name: GALLEON_PROVISION_DEFAULT_FAT_SERVER
+        value: "true"
+      - name: CUSTOM_INSTALL_DIRECTORIES
+        value: extensions
+----
+
+by
+
+[source,yaml]
+----
+  strategy:
+    sourceStrategy:
+      env:
+      - name: GALLEON_PROVISION_DEFAULT_FAT_SERVER
+        value: "true"
+      - name: CUSTOM_INSTALL_DIRECTORIES
+        value: extensions
+      - name: MAVEN_REPOS
+        value: EAP
+      - name: EAP_MAVEN_REPO_URL
+        value: file:///tmp/src/eap-maven-repo/maven-repository
+----
+
+Retrigger a build if needed.
+
+At the end of the S2I build phase, the application image will contained the application provisioned with EAP8.
+
+[source,bash]
+----
+$ oc logs deployment/eap-offline-example
+...
+14:22:54,324 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220523) started in 13706ms - St
+...
+----
