@@ -7,17 +7,35 @@ But there are cases where the users wants to build EAP without internet access.
 
 In order to do so, we will fetch the zipped Maven repository and put it in a scratch container image so we can pull the artifacts from there during the S2I build phase.
 
-## Downlaoad EAP maven repository zip and put it in a container image
+## Downlaoad EAP maven repository zip, add the application dependencies and put it in a container image
 
 [source,bash]
 ----
+$ cd ~/tmp
 $ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
 $ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
+$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository offline-maven-repo
+----
+
+To add all the application dependencies to this offline repo,
+we build the app and use the `dependency:go-offline` goal
+
+[source,bash]
+----
+$ export LOCAL_M2=~/tmp/offline-maven-repo
+mvn -Dmaven.repo.local=$LOCAL_M2 clean package -Popenshift dependency:go-offline
+----
+
+Once that's done, all artifacts required to build the application and provision EAP are in the ~/tmp/offline-maven-repo directory.
+Let's create a Docker image that contains this directory.
+
+[source,bash]
+----
+$ cd ~/tmp
 $ cat Dockerfile
 FROM scratch
-COPY jboss-eap-8.0.0.Beta-maven-repository/maven-repository/ /maven-repository
-
-$ docker build -t eap-maven-repo:8.0.0.Beta .
+COPY offline-maven-repo /maven-repository
+$ docker build -t offline-maven-repo .
 ----
 
 ## Push this image to OpenShift
@@ -26,8 +44,8 @@ $ docker build -t eap-maven-repo:8.0.0.Beta .
 ----
 $ oc registry login
 $ docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com
-$ docker tag  eap-maven-repo:8.0.0.Beta default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo:8.0.0.Beta
-$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo:8.0.0.Beta
+$ docker tag  offline-maven-repo default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/offline-maven-repo
+$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/offline-maven-repo
 ----
 
 ## Create a Helm release to build and deploy the application
@@ -61,43 +79,23 @@ source:
     git:
       uri: https://github.com/jmesnil/eap-offline-example.git
     images:
-    - from:
-        kind: ImageStreamTag
-        name: eap-maven-repo:8.0.0.Beta
-      paths:
-      - destinationDir: ./eap-maven-repo
-        sourcePath: /maven-repository
+      - from:
+          kind: ImageStreamTag
+          name: 'offline-maven-repo:latest'
+        paths:
+          - sourcePath: /maven-repository
+            destinationDir: ./offline-maven-repo
     type: Git
 ----
 
-And replace:
+And add the following env vars to `strategy.sourceStrategy.env`:
 
 [source,yaml]
 ----
-  strategy:
-    sourceStrategy:
-      env:
-      - name: GALLEON_PROVISION_DEFAULT_FAT_SERVER
-        value: "true"
-      - name: CUSTOM_INSTALL_DIRECTORIES
-        value: extensions
-----
-
-by
-
-[source,yaml]
-----
-  strategy:
-    sourceStrategy:
-      env:
-      - name: GALLEON_PROVISION_DEFAULT_FAT_SERVER
-        value: "true"
-      - name: CUSTOM_INSTALL_DIRECTORIES
-        value: extensions
-      - name: MAVEN_REPOS
-        value: EAP
-      - name: EAP_MAVEN_REPO_URL
-        value: file:///tmp/src/eap-maven-repo/maven-repository
+        - name: MAVEN_LOCAL_REPO
+          value: ./offline-maven-repo/maven-repository
+        - name: MAVEN_ARGS_APPEND
+          value: '-o'
 ----
 
 Retrigger a build if needed.
