@@ -31,11 +31,20 @@
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-maven-plugin</artifactId>
-                <version>3.0.0.Final</version>
+                <version>4.0.0.Alpha1</version>
                 <configuration>
+                    <channels>
+                        <channel>
+                          <groupId>org.jboss.eap</groupId>
+                          <artifactId>wildfly-ee-galleon-pack</artifactId>
+                          <!--
+                          <version>8.0.0.Beta-redhat-0-20220531</version>
+                          -->
+                        </channel>
+                    </channels>
                     <feature-packs>
                         <feature-pack>
-                            <location>org.jboss.eap:wildfly-ee-galleon-pack:8.0.0.Beta-redhat-0-20220531</location>
+                            <location>org.jboss.eap:wildfly-ee-galleon-pack</location>
                         </feature-pack>
                     </feature-packs>
                     <layers>
