@@ -37,9 +37,7 @@
                         <channel>
                           <groupId>org.jboss.eap</groupId>
                           <artifactId>wildfly-ee-galleon-pack</artifactId>
-                          <!--
                           <version>8.0.0.Beta-redhat-0-20220531</version>
-                          -->
                         </channel>
                     </channels>
                     <feature-packs>
