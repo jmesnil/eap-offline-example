@@ -35,7 +35,7 @@
                 <configuration>
                     <feature-packs>
                         <feature-pack>
-                            <location>org.jboss.eap:wildfly-ee-galleon-pack:8.0.0.Beta-redhat-20220523</location>
+                            <location>org.jboss.eap:wildfly-ee-galleon-pack:8.0.0.Beta-redhat-0-20220531</location>
                         </feature-pack>
                     </feature-packs>
                     <layers>
