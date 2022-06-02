@@ -10,6 +10,6 @@ build:
           destinationDir: ./eap-maven-repo
   env:
     - name: MAVEN_SETTINGS_XML
-      value: ./ocp-settings.xml
+      value: /tmp/src/ocp-settings.xml
 deploy:
   replicas: 1
