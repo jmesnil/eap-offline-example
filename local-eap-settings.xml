@@ -10,7 +10,7 @@
             <repositories>
                 <repository>
                     <id>jboss-eap-repository</id>
-                    <url>file:///Users/jmesnil/tmp/jboss-eap-8.0.0.Beta-maven-repository/maven-repository</url>
+                    <url>file:///Users/jmesnil/tmp/eap-maven-repo</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -19,6 +19,18 @@
                     </snapshots>
                 </repository>
             </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>jboss-eap-plugin-repository</id>
+                    <url>file:///Users/jmesnil/tmp/eap-maven-repo</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
         </profile>
     </profiles>
 

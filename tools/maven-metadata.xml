@@ -1,0 +1,12 @@
+<metadata>
+    <groupId>org.jboss.eap</groupId>
+    <artifactId>wildfly-ee-galleon-pack</artifactId>
+    <versioning>
+        <latest><!-- ##EAP_VERSION## --></latest>
+        <release><!-- ##EAP_VERSION## --></release>
+        <versions>
+            <version><!-- ##EAP_VERSION## --></version>
+        </versions>
+        <lastUpdated>20220513125029</lastUpdated>
+    </versioning>
+</metadata>

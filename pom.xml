@@ -7,7 +7,7 @@
     <version>1.0.0.Final</version>
     <packaging>war</packaging>
 
-    <description>Example to package an EAP application in offline mode</description>
+    <description>Example to package an EAP 8 application</description>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -29,9 +29,9 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                <version>4.0.0.Alpha1</version>
+                <groupId>org.jboss.eap.plugins</groupId>
+                <artifactId>eap-maven-plugin</artifactId>
+                <version>1.0.0.Alpha2-redhat-00001</version>
                 <configuration>
                     <channels>
                         <channel>
