@@ -9,7 +9,7 @@ build:
         - sourcePath: /maven-repository
           destinationDir: ./eap-maven-repo
   env:
-    - name: MAVEN_LOCAL_REPO
-      value: ./eap-maven-repo/maven-repository
+    - name: MAVEN_SETTINGS_XML
+      value: ./ocp-settings.xml
 deploy:
   replicas: 1
