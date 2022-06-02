@@ -34,6 +34,15 @@
                 <version>1.0.0.Alpha2-redhat-00001</version>
                 <configuration>
                     <channels>
+                        <!-- For the time being, we are using the channel definition that is provided
+                             by the EAP feature pack.
+                             Next step is to use a proper GA for the EAP 8 Beta Channel with something like
+
+                             <channel>
+                               <groupId>org.jboss.eap.channels</groupId>
+                               <artifactId>eap-8.0-beta</artifactId>
+                             </channel>
+                        -->
                         <channel>
                           <groupId>org.jboss.eap</groupId>
                           <artifactId>wildfly-ee-galleon-pack</artifactId>
