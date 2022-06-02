@@ -11,12 +11,5 @@ build:
   env:
     - name: MAVEN_LOCAL_REPO
       value: ./eap-maven-repo/maven-repository
-    # If you have put all the application dependencies in the eap-maven-repo image
-    # you can run Maven in offline mode by passing the "-o" option to it.
-    # Uncomment the following env var to do so:
-    # - name: MAVEN_ARGS_APPEND
-    #  value: '-o'
 deploy:
   replicas: 1
-
-
