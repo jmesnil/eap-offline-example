@@ -68,18 +68,18 @@ $ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository eap-maven-repo/
 [NOTE]
 ====
 
-In OpenShift disconnected mode, we want to pull all the application dependencies from a local repository when the application is built.
-To do so, we build the app and use the `dependency:go-offline` goal
+To support channels, we need to inject Maven metadata so that it can fetch the latest version from the channel.
+To do so, we create these metadata resources in our unzipped maven repo:
 
 [source,bash]
 ----
-$ export LOCAL_M2=~/tmp/eap-maven-repo
-$ mvn -Dmaven.repo.local=$LOCAL_M2 clean package dependency:go-offline
+$ cd tools
+$ ./update-maven-repo.sh ~/tmp/eap-maven-repo
 ----
 
 ====
 
-Once that's done, all artifacts required to build the application and provision EAP are in the `~/tmp/offline-maven-repo directory`.
+Once that's done, all artifacts required to build the application and provision EAP are in the `~/tmp/eap-maven-repo directory`.
 Let's create a Docker image that contains this directory.
 
 [source,bash]
