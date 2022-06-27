@@ -4,10 +4,16 @@ build:
   images:
     - from:
         kind: ImageStreamTag
-        name: 'eap-maven-repo:latest'
+        name: eap-maven-repo:latest
       paths:
         - sourcePath: /maven-repository
           destinationDir: ./eap-maven-repo
+  s2i:
+    jdk: "11"
+    jdk11:
+      builderImage: eap8-openjdk11-builder-openshift-rhel8
+      runtimeImage:  eap8-openjdk11-runtime-openshift-rhel8
+    kind: ImageStreamTag
   env:
     - name: MAVEN_SETTINGS_XML
       value: /tmp/src/ocp-settings.xml
