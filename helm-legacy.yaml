@@ -27,5 +27,7 @@ build:
       value: eap-maven-plugin
     - name: PROVISIONING_MAVEN_PLUGIN_VERSION
       value: 1.0.0.Alpha3-redhat-00001
+    - name: GALLEON_MAVEN_SETTINGS_XML
+      value: /tmp/src/ocp-settings.xml
 deploy:
   replicas: 1
