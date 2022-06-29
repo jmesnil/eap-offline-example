@@ -17,6 +17,8 @@ build:
   env:
     - name: MAVEN_SETTINGS_XML
       value: /tmp/src/ocp-settings.xml
+    - name: MAVEN_ARGS
+      value: -f pom-legacy.xml -e -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga package
     - name: GALLEON_PROVISION_CHANNELS
       value: org.jboss.eap.channels:eap-8.0-beta
     - name: BUILD_LOGLEVEL
