@@ -1,0 +1,31 @@
+build:
+  uri: https://github.com/jmesnil/eap-offline-example.git
+  ref: channel
+  images:
+    - from:
+        kind: ImageStreamTag
+        name: 'eap-maven-repo:latest'
+      paths:
+        - sourcePath: /maven-repository
+          destinationDir: ./eap-maven-repo
+  s2i:
+    galleonLayers:
+      - jaxrs-server
+    featurePacks:
+      - org.jboss.eap:wildfly-ee-galleon-pack
+      - org.jboss.eap.cloud:eap-cloud-galleon-pack:1.0.0.Alpha3-redhat-00001
+  env:
+    - name: MAVEN_SETTINGS_XML
+      value: /tmp/src/ocp-settings.xml
+    - name: GALLEON_PROVISION_CHANNELS
+      value: org.jboss.eap.channels:eap-8.0-beta
+    - name: BUILD_LOGLEVEL
+      value: "5"
+    - name: PROVISIONING_MAVEN_PLUGIN_GROUP_ID
+      value: org.jboss.eap.plugins
+    - name: PROVISIONING_MAVEN_PLUGIN_ARTIFACT_ID
+      value: eap-maven-plugin
+    - name: PROVISIONING_MAVEN_PLUGIN_VERSION
+      value: 1.0.0.Alpha3-redhat-00001
+deploy:
+  replicas: 1
