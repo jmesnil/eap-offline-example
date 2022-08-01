@@ -3,52 +3,32 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.jmesnil</groupId>
-    <artifactId>eap-offline-example</artifactId>
+    <artifactId>eap-app-parent</artifactId>
     <version>1.0.0.Final</version>
-    <packaging>war</packaging>
+    <packaging>pom</packaging>
 
     <description>Example to package an EAP 8 application</description>
 
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <failOnMissingWebXml>false</failOnMissingWebXml>
-        <plugin.fork.embedded>true</plugin.fork.embedded>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-api</artifactId>
-            <version>8.0.0</version>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>application1</module>
+        <module>application2</module>
+        <module>server</module>
+    </modules>
 
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.jboss.eap.plugins</groupId>
-                <artifactId>eap-maven-plugin</artifactId>
-                <version>1.0.0.Alpha3-redhat-00001</version>
-                <configuration>
-                    <channels>
-                        <channel>
-                            <groupId>org.jboss.eap.channels</groupId>
-                            <artifactId>eap-8.0-beta</artifactId>
-                        </channel>
-                    </channels>
-                    <runtime-name>ROOT.war</runtime-name>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>package</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.jmesnil</groupId>
+                <artifactId>application1</artifactId>
+                <type>war</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.jmesnil</groupId>
+                <artifactId>application2</artifactId>
+                <type>war</type>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
