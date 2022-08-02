@@ -1,5 +1,24 @@
-# Build and deploy a EAP8 application
+# Build and deploy a EAP8 server with Multiple Deployments
 :toc:               left
+
+This example shows how to provision an EAP 8 server with multiple deployments.
+It uses a Maven assembly to copy the deployments into the provisioned server
+
+[source]
+----
+.
+├── README.adoc
+├── application1 # the 1st deployment
+│   ├── pom.xml # a regular WAR deployment
+│   └── src
+├── application2 # the 2nd deployment
+│   ├── pom.xml # a regular WAR deployment
+│   └── src
+├── local-eap-settings.xml
+├── pom.xml # the Parent POM
+└── server # the Maven module responsible for provisioning EAP 8 and copying the deployments
+    └── pom.xml # Use the eap-maven-plugin to provision EAP 8
+----
 
 ## Build and run on local machine
 
@@ -13,7 +32,6 @@ $ cd ~/tmp
 $ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
 $ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
 ----
-
 
 ### Build the application
 
@@ -31,19 +49,17 @@ Build the application by using the EAP 8 Maven repo as a remote  Maven repositor
 $ mvn -s local-eap-settings.xml clean package
 ----
 
-[NOTE]
-====
-This example uses the `wildfly-maven-plugin` that will be replaced by the `eap-maven-plugin` when it becomes available.
-====
-
 ### Run the application
 
 
 [source,bash]
 ----
-$ ./target/server/bin/standalone.sh
+$ ./server/target/server/bin/standalone.sh
 ...
-16:50:59,686 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220523) started in 3807ms - Started 274 of 359 services (138 services are lazy, passive or on-demand) - Server configuration file in use: standalone.xml
+09:53:49,712 INFO  [org.jboss.as.server] (ServerService Thread Pool -- 30) WFLYSRV0010: Deployed "application2-1.0.0.Final.war" (runtime-name : "application2-1.0.0.Final.war")
+09:53:49,712 INFO  [org.jboss.as.server] (ServerService Thread Pool -- 30) WFLYSRV0010: Deployed "application1-1.0.0.Final.war" (runtime-name : "application1-1.0.0.Final.war")
+...
+09:53:49,747 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220627) started in 3930ms - Started 344 of 429 services (136 services are lazy, passive or on-demand) - Server configuration file in use: standalone.xml
 ----
 
 ## Build and deploy on OpenShift
