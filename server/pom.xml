@@ -4,6 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>server</artifactId>
     <packaging>pom</packaging>
+    <description>EAP Server + deployments</description>
 
     <parent>
         <groupId>net.jmesnil</groupId>
@@ -11,15 +12,9 @@
         <version>1.0.0.Final</version>
     </parent>
 
-
-    <description>multi-deployment server</description>
-
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <failOnMissingWebXml>false</failOnMissingWebXml>
         <plugin.fork.embedded>true</plugin.fork.embedded>
     </properties>
 
@@ -59,7 +54,6 @@
                         <layer>cloud-server</layer>
                     </layers>
                 </configuration>
-
                 <executions>
                     <execution>
                         <goals>
@@ -69,18 +63,32 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
-                        <id>distro-assembly</id>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <descriptors>
-                                <descriptor>assembly.xml</descriptor>
-                            </descriptors>
+                            <outputDirectory>${basedir}/target/server/standalone/deployments</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../application1/target</directory>
+                                    <includes>
+                                        <include>*.war</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../application2/target</directory>
+                                    <includes>
+                                        <include>*.war</include>
+                                    </includes>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
