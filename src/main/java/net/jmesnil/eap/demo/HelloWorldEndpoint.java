@@ -1,5 +1,4 @@
-package org.wildfly.plugins.demo.jaxrs;
-
+package net.jmesnil.eap.demo;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
