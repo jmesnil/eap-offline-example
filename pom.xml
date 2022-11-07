@@ -127,14 +127,14 @@
     <!-- once EAP 8 is released, this section will need to be updated to point to MRRC GA -->
     <repositories>
         <repository>
-            <id>reposilite-repository-eap8-test-release</id>
-            <url>http://eap-prod-reposilite.usersys.redhat.com/eap8-test-release</url>
+            <id>mrrc-ea</id>
+            <url>https://maven.repository.redhat.com/earlyaccess/all/</url>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>reposilite-repository-eap8-test-release</id>
-            <url>http://eap-prod-reposilite.usersys.redhat.com/eap8-test-release</url>
+            <id>mrrc-ea</id>
+            <url>https://maven.repository.redhat.com/earlyaccess/all/</url>
         </pluginRepository>
     </pluginRepositories>
 </project>
