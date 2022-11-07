@@ -75,7 +75,7 @@
             <plugin>
                 <groupId>org.jboss.eap.plugins</groupId>
                 <artifactId>eap-maven-plugin</artifactId>
-                <version>1.0.0.Beta3-redhat-00001</version>
+                <version>1.0.0.Beta5-redhat-00001</version>
                 <configuration>
                     <channels>
                         <channel>
