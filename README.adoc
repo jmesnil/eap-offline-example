@@ -1,145 +1,57 @@
 # Build and deploy a EAP8 server with Multiple Deployments
 :toc:               left
 
-This example shows how to provision an EAP 8 server with multiple deployments.
-It uses a Maven assembly to copy the deployments into the provisioned server
+This example shows how to provision a plain EAP 8 server without any deployment.
 
-[source]
-----
-.
-├── README.adoc
-├── application1 # the 1st deployment
-│   ├── pom.xml # a regular WAR deployment
-│   └── src
-├── application2 # the 2nd deployment
-│   ├── pom.xml # a regular WAR deployment
-│   └── src
-├── local-eap-settings.xml
-├── pom.xml # the Parent POM
-└── server # the Maven module responsible for provisioning EAP 8 and copying the deployments
-    └── pom.xml # Use the eap-maven-plugin to provision EAP 8
-----
+### Build the container image that contains the server
 
-## Build and run on local machine
-
-If you need to build and provision the application on your own machine with an internet access, there are few steps to do.
-
-### Download EAP maven repository zip
+To provision EAP 8 and create a container image with it, run the following commands:
 
 [source,bash]
 ----
-$ cd ~/tmp
-$ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
-$ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
+mvn clean package
 ----
 
-### Build the application
+## Run the container image
 
-Update the path to the EAP 8 maven repository in the  `local-eap-settings.xml` file:
+The container image `eap/eap8-server:latest` contains an EAP 8 without any deployments. You can still run it with:
 
 [source,bash]
 ----
-$ vi local-eap-settings.xml
+docker run -p 8080:8080 eap/eap8-server:latest
 ----
 
-Build the application by using the EAP 8 Maven repo as a remote  Maven repository.
+In the logs, we see that the server is up and running without any deployments
 
 [source,bash]
 ----
-$ mvn -s local-eap-settings.xml clean package
+8:51:01,997 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Beta16-redhat-00004) started in 658ms - Starte
 ----
 
-### Run the application
-
+If you have a web archive (WAR), you can then _mount_ it in the image so that the server will deploy it when the container image is run.
+For example, if I have a `helloworld.war` on my local file system, I can deploy it in the container image with:
 
 [source,bash]
 ----
-$ ./server/target/server/bin/standalone.sh
+docker run -p 8080:8080 -v ./helloworld.war:/opt/server/standalone/deployments/ROOT.war  eap/eap8-server:latest
+----
+
+When the server boots, it now deploys the WAR (and put it at the root of the HTTP endpoint)
+
+[source,bash]
+----
+08:54:26,844 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-1) WFLYSRV0027: Starting deployment of "ROOT.war" (runtime-name: "ROOT.war")
 ...
-09:53:49,712 INFO  [org.jboss.as.server] (ServerService Thread Pool -- 30) WFLYSRV0010: Deployed "application2-1.0.0.Final.war" (runtime-name : "application2-1.0.0.Final.war")
-09:53:49,712 INFO  [org.jboss.as.server] (ServerService Thread Pool -- 30) WFLYSRV0010: Deployed "application1-1.0.0.Final.war" (runtime-name : "application1-1.0.0.Final.war")
-...
-09:53:49,747 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220627) started in 3930ms - Started 344 of 429 services (136 services are lazy, passive or on-demand) - Server configuration file in use: standalone.xml
+08:54:28,647 INFO  [org.jboss.as.server] (ServerService Thread Pool -- 30) WFLYSRV0010: Deployed "ROOT.war" (runtime-name : "ROOT.war")
+08:54:28,670 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Beta16-redhat-00004) started in 2321ms - Started 275 of 368 services (142 services are lazy, passive or on-demand) - Server configuration file in use: standalone.xml
 ----
 
-## Build and deploy on OpenShift
-
-This example shows how to build a EAP8 application on OpenShift using the zipped Maven repository.
-
-Normally, there is no need to use this zipped Maven repository when EAP artifacts are all available for Red Hat MRRC.
-But there are cases where the users wants to build EAP without internet access.
-
-In order to do so, we will fetch the zipped Maven repository and put it in a scratch container image so we can pull the artifacts from there during the S2I build phase.
-
-### Download EAP maven repository zip and put it in a container image
+The web application can now be accessed from the image:
 
 [source,bash]
 ----
-$ cd ~/tmp
-$ wget -c <url to jboss-eap-8.0.0.Beta maven-repository.zip> --no-check-certificate
-$ unzip jboss-eap-8.0.0.Beta-redhat-xxxxxxxx-maven-repository.zip
-$ cp -rf jboss-eap-8.0.0.Beta-maven-repository/maven-repository eap-maven-repo/
+$ curl http://localhost:8080/HelloWorld
+<html><head><title>helloworld</title></head><body>
+<h1>Hello World!</h1>
+</body></html>
 ----
-
-[NOTE]
-====
-
-To support channels, we need to inject Maven metadata so that it can fetch the latest version from the channel.
-To do so, we create these metadata resources in our unzipped maven repo:
-
-[source,bash]
-----
-$ cd tools
-$ ./update-maven-repo.sh ~/tmp/eap-maven-repo
-----
-
-====
-
-Once that's done, all artifacts required to build the application and provision EAP are in the `~/tmp/eap-maven-repo directory`.
-Let's create a Docker image that contains this directory.
-
-[source,bash]
-----
-$ cd ~/tmp
-$ cat Dockerfile
-FROM scratch
-COPY eap-maven-repo /maven-repository
-$ docker build -t eap-maven-repo .
-----
-
-### Push this image to OpenShift
-
-[source,bash]
-----
-$ oc registry login
-$ docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com
-$ docker tag  eap-maven-repo default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo
-$ docker push default-route-openshift-image-registry.apps.sandbox.x8i5.p1.openshiftapps.com/jmesnil1-dev/eap-maven-repo
-----
-
-### Create a Helm release to build and deploy the application
-
-[source,bash]
-----
-$ helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
-$ helm install eap-example -f helm.yaml wildfly/wildfly
-----
-
-[NOTE]
-====
-This example uses the `wildfly` Helm Chart and the WildFly S2I images.
-They will be replaced by the `eap8` Helm Chart and teh EAP 8 S2I when they become available.
-====
-
-At the end of the S2I build phase, the application image will contain the application provisioned with EAP8.
-
-[source,bash]
-----
-$ oc logs deployment/eap-offline-example
-...
-14:22:54,324 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: JBoss EAP 8.0.0.Beta (WildFly Core 19.0.0.Final-redhat-20220523) started in 13706ms - St
-...
-----
-
-
-
