@@ -33,7 +33,7 @@ For example, if I have a `helloworld.war` on my local file system, I can deploy 
 
 [source,bash]
 ----
-docker run -p 8080:8080 -v ./helloworld.war:/opt/server/standalone/deployments/ROOT.war  eap/eap8-server:latest
+docker run -p 8080:8080 -v $(pwd)/helloworld.war:/opt/server/standalone/deployments/ROOT.war  eap/eap8-server:latest
 ----
 
 When the server boots, it now deploys the WAR (and put it at the root of the HTTP endpoint)
