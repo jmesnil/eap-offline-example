@@ -16,13 +16,27 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <plugin.fork.embedded>true</plugin.fork.embedded>
-        <version.eap8>8.0.0.Beta-redhat-20220601</version.eap8>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- importing the jboss-eap-ee BOM adds specs and other useful artifacts as managed dependencies -->
+            <dependency>
+                <groupId>org.jboss.bom</groupId>
+                <artifactId>jboss-eap-ee</artifactId>
+                <version>8.0.0.GA-redhat-20230621</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-api</artifactId>
-            <version>8.0.0</version>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>3.1.0.redhat-00001</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -32,8 +46,16 @@
             <plugin>
                 <groupId>org.jboss.eap.plugins</groupId>
                 <artifactId>eap-maven-plugin</artifactId>
-                <version>1.0.0.Alpha2-redhat-00001</version>
+                <version>1.0.0.Beta9-redhat-20230621</version>
                 <configuration>
+                    <channels>
+                        <channel>
+                        <manifest>
+                            <groupId>org.jboss.eap.channels</groupId>
+                            <artifactId>eap-8.0</artifactId>
+                            </manifest>
+                        </channel>
+                    </channels>
                     <feature-packs>
                         <feature-pack>
                             <location>org.jboss.eap:wildfly-ee-galleon-pack:${version.eap8}</location>
@@ -54,4 +76,17 @@
             </plugin>
         </plugins>
     </build>
+
+        <repositories>
+        <repository>
+            <id>mrrc-ga</id>
+            <url>https://maven.repository.redhat.com/ga/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mrrc-ga</id>
+            <url>https://maven.repository.redhat.com/ga/</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
